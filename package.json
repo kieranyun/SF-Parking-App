@@ -1,0 +1,16 @@
+{
+  "name": "parking-app",
+  "version": "1.0.0",
+  "description": "An app that helps users avoid parking tickets",
+  "repository": {
+    "type": "git",
+    "url": "SF-Parking-App"
+  },
+  "license": "ISC",
+  "author": "Kieran Yun",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  }
+}
