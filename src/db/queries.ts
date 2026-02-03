@@ -81,4 +81,5 @@ FROM sidewalk_line
 ORDER BY distance_meters
 LIMIT 8;`,
 // $1 = longitude, $2 = latitude, $3 = esitmated street width / 2, $4 = accuracy radius + estimated street width / 2
+//probably want to reformat this to send the full week1 week2, weekday, holiday, etc, and handle some of that calculation on the server.
 }

@@ -3,26 +3,35 @@ import { findRestrictionsNearPoint } from '../services/parkingService';
 
 export const parkingRouter = Router();
 
-// TODO: Implement POST /api/check-parking endpoint
 parkingRouter.post('/check-parking', async (req, res) => {
   try {
-    const { latitude, longitude, bufferMeters } = req.body;
+    const { latitude, longitude } = req.body;
 
-    // TODO: Validate input
-    // - Check that latitude and longitude are numbers
-    // - Check that coordinates are within SF bounds
-    //   (roughly lat: 37.7-37.85, lon: -122.55 to -122.35)
+    // Validate input
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      return res.status(400).json({
+        error: 'Invalid input',
+        message: 'latitude and longitude must be numbers'
+      });
+    }
 
-    // TODO: Call findRestrictionsNearPoint service
+    // Check coordinates are within SF bounds
+    if (latitude < 37.7 || latitude > 37.85 || longitude < -122.55 || longitude > -122.35) {
+      return res.status(400).json({
+        error: 'Coordinates out of range',
+        message: 'Coordinates appear to be outside San Francisco'
+      });
+    }
 
-    // TODO: Return response with:
-    // - latitude, longitude
-    // - restrictions array
-    // - parkingAllowed boolean (true if no restrictions)
-    // - checkedAt timestamp
+    // Call service to find restrictions
+    const restrictions = await findRestrictionsNearPoint(latitude, longitude);
 
+    // Return response
     res.json({
-      // TODO: Add response data
+      latitude,
+      longitude,
+      restrictions,
+      checkedAt: new Date().toISOString()
     });
   } catch (error) {
     res.status(500).json({
