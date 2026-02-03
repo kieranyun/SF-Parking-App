@@ -6,7 +6,7 @@ dist/
 
 # Environment variables
 .env
-.end.docker
+.env.docker
 .env.local
 .env.*.local
 
