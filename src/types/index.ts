@@ -44,5 +44,24 @@ export interface GeoJSONFeature {
     type: 'LineString';
     coordinates: number[][];
   };
-  properties: Record<string, any>;
+  properties: FeatureProperties;
+}
+
+export interface FeatureProperties {
+  corridor: string;
+  week3: string;
+  week5: string;
+  cnnrightleft: string;
+  cnn: string;
+  week2: string;
+  holidays: string;
+  fullname: string;
+  blockside: string;
+  week1: string;
+  fromhour: string;
+  weekday: string;
+  tohour: string;
+  blocksweepid: string;
+  week4: string;
+  limits: string;
 }

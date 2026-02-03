@@ -1,18 +1,17 @@
 import axios from 'axios';
 import { pool } from './connection';
 import { QUERIES } from './queries';
+import { GeoJSONFeature } from '../types';
 
 const SF_OPEN_DATA_URL = 'https://data.sfgov.org/resource/yhqp-riqs.geojson';
 
-// TODO: Create a function to load street sweeping data from SF Open Data
+// Calls sfdata api to get street sweeping data, minor transformations and loads it to our db
 export async function loadStreetSweepingData(): Promise<number> {
   const client = await pool.connect();
 
   try {
     console.log('Fetching data from SF Open Data...');
 
-    // TODO: Fetch GeoJSON data from SF_OPEN_DATA_URL
-    // Hint: Use axios.get with $limit parameter
     const headers: any = {};
     if (process.env.DATASF_APP_TOKEN) {
       headers['X-App-Token'] = process.env.DATASF_APP_TOKEN;
@@ -25,27 +24,65 @@ export async function loadStreetSweepingData(): Promise<number> {
       headers
     });
 
-    const features = results.data.features;
+    const features: GeoJSONFeature[] = results.data.features;
 
-    await client.query('BEGIN') //starts a db transaction
-    
+    await client.query('BEGIN'); //starts a db transaction
 
-    // TODO: Clear existing data
+    //Clear existing data
+    await client.query('DELETE FROM street_sweeping');
 
-    // TODO: Loop through features and insert into database
-    // For each feature:
-    //   - Extract properties
-    //   - Convert GeoJSON LineString coordinates to WKT format
-    //   - Insert into street_sweeping table using ST_GeomFromText
+    // Loop through 'features' and insert row by row into database
+    let insertedCount = 0;
+    for (const feature of features) {
+      try {
+        const {properties: props, geometry} = feature;
 
-    // TODO: Update metadata table with last_updated timestamp
+        // Skip if no geometry or wrong type
+        if (!geometry || geometry.type !== 'LineString') {
+          continue;
+        }
 
-    // TODO: Commit transaction
+        const wkt = coordinatesToWKT(geometry.coordinates)
 
-    console.log('Data loaded successfully');
-    return 0; // Return count of inserted records
+        await client.query(
+          QUERIES.insertStreetSweeping,
+          [
+            props.corridor,
+            props.fullname,
+            props.weekday,
+            props.cnn,
+            props.cnnrightleft,
+            props.blocksweepid,
+            props.blockside,
+            props.limits,
+            props.fromhour ? parseInt(props.fromhour) : null,
+            props.tohour ? parseInt(props.tohour) : null,
+            props.holidays === '1',
+            props.week1 === '1',
+            props.week2 === '1',
+            props.week3 === '1',
+            props.week4 === '1',
+            props.week5 === '1',
+            wkt
+          ]
+        );
+        insertedCount++;
+      } catch (error) {
+        console.error('Error inserting feature: ', error, feature)
+      }
+    }
+
+    await client.query(QUERIES.insertMetaData, ['street_sweeping', insertedCount])
+
+    await client.query('COMMIT') //ends transaction
+
+    console.log(`Data loaded successfully.
+    Uploaded ${insertedCount} from ${features.length} features in api response`);
+
+    return insertedCount; // Return count of inserted records
   } catch (error) {
-    // TODO: Rollback transaction on error
+    //Rollback transaction on error
+    await client.query('ROLLBACK');
     console.error('Error loading data:', error);
     throw error;
   } finally {
@@ -53,12 +90,16 @@ export async function loadStreetSweepingData(): Promise<number> {
   }
 }
 
-// TODO: Helper function to convert GeoJSON coordinates to WKT
+// Helper function to convert GeoJSON coordinates to WellKnowText format
+// takes [[lon, lat], [lon, lat], ...] and makes it "LINESTRING(lon lat, lon lat, ...)"
 function coordinatesToWKT(coordinates: number[][]): string {
-  // TODO: Convert [[lon, lat], [lon, lat], ...] to "LINESTRING(lon lat, lon lat, ...)"
-  return '';
+  const wktCoordinates = coordinates
+  .map(([lon, lat]) => `${lon} ${lat}`)
+  .join(', ')
+  return `LINESTRING(${wktCoordinates})`
 }
 
+//simply checks if there are any rows in the street sweeping table
 export async function needsDataLoad(): Promise<boolean> {
   const client = await pool.connect();
 
