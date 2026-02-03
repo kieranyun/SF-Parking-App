@@ -2,6 +2,8 @@ This is going to be a project where I make an app that gets data from a server t
 
 There will be an API that gets a location and returns any parking restrictions. The API gets data from SF street sweeping data: https://data.sfgov.org/City-Infrastructure/Street-Sweeping-Schedule/yhqp-riqs/about_data
 
+start db with `docker-compose --env-file .env.docker up -d`
+
 
 
 # SF-Parking-App
