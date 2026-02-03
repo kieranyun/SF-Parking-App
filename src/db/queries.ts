@@ -65,8 +65,8 @@ sidewalk_line AS (
   SELECT
     *,
     ST_MakeLine(
-      ST_Project(ST_StartPoint(centerline)::geography, $3, street_bearing + offset_direction)::geometry,
-      ST_Project(ST_EndPoint(centerline)::geography, $3, street_bearing + offset_direction)::geometry
+      ST_Project(ST_StartPoint(centerline)::geography, $3::double precision, street_bearing + offset_direction)::geometry,
+      ST_Project(ST_EndPoint(centerline)::geography, $3::double precision, street_bearing + offset_direction)::geometry
     ) as sidewalk_line
   FROM offset_calc
 )

@@ -1,44 +1,28 @@
-import { QueryResult } from 'pg';
 import { pool } from '../db/connection';
 import { QUERIES } from '../db/queries';
+import { ParkingRestriction, CheckParkingRequest } from '../types';
 
-const EST_STREET_WIDTH_METERS = 10;
-const GPS_ACCURACY_RADIUS_METERS = 6;
-
-export interface ParkingRestriction {
-  type: string;
-  street: string;
-  weekday?: string;
-  fromTime?: string;
-  toTime?: string;
-  schedule?: string;
-  distance: number;
-}
-
-// export interface CnnSide {
-//   cnn: number;
-//   side: 'L' | 'R';
-// }
-
-// export async function findCnnSidebyCoordinates(
-//   latitude: number,
-//   longitude: number,
-//   radiusFt: number = 30 //TODO: determine accuracy of the GPS device
-// ): Promise<CnnSide[]> {
-
-// }
+const EST_STREET_WIDTH_METERS = 10.00;
+const GPS_ACCURACY_RADIUS_METERS = 6.00;
 
 // TODO: Create a function to find parking restrictions near a coordinate
-export async function findRestrictionsNearPoint(
-  latitude: number,
-  longitude: number
-  ): Promise<QueryResult | []> { //update type
+export async function findRestrictionsNearPoint(CheckParkingRequest: CheckParkingRequest): Promise<ParkingRestriction[] | []> { //update type
   const client = await pool.connect();
-
+  const {longitude, latitude} = CheckParkingRequest
   try {
-    const result = await client.query(QUERIES.getSweepingSchedulesByCoordinates,[longitude, latitude, EST_STREET_WIDTH_METERS/2, (GPS_ACCURACY_RADIUS_METERS + (EST_STREET_WIDTH_METERS/2))])
+    const qResult = await client.query(QUERIES.getSweepingSchedulesByCoordinates,[longitude, latitude, EST_STREET_WIDTH_METERS/2, (GPS_ACCURACY_RADIUS_METERS + (EST_STREET_WIDTH_METERS/2))])
 
-    console.log(result);
+    console.log(qResult.rows);
+
+    const result: ParkingRestriction[] = qResult.rows.map(row => {
+      return {
+        type: 'street sweeping',
+        street: row.corridor,
+        crossStreets: row.limits, //cross streets
+        blockside: row.blockside, //"East", "West", etc..
+        restrictionDescription: row.schedule
+      }
+  })
     return result;
   } catch (error) {
     console.error('error querying by coordinates', error)

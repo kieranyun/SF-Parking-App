@@ -4,7 +4,6 @@
 export interface CheckParkingRequest {
   latitude: number;
   longitude: number;
-  bufferMeters?: number;
 }
 
 export interface CheckParkingResponse {
@@ -16,14 +15,18 @@ export interface CheckParkingResponse {
   dataLastUpdated?: string;
 }
 
+//To be updated
 export interface ParkingRestriction {
   type: string;
   street: string;
-  weekday?: string;
-  fromTime?: string;
-  toTime?: string;
-  schedule?: string;
-  distance: number;
+  // weekday?: string;
+  // fromTime?: string;
+  // toTime?: string;
+  // schedule?: string;
+  // distance: number;
+  crossStreets: string; //cross streets
+  blockside: string; //"East", "West", etc..
+  restrictionDescription: string;
 }
 
 // TODO: Add database row types

@@ -24,7 +24,14 @@ parkingRouter.post('/check-parking', async (req, res) => {
     }
 
     // Call service to find restrictions
-    const restrictions = await findRestrictionsNearPoint(latitude, longitude);
+    const restrictions = await findRestrictionsNearPoint({latitude, longitude});
+
+    if (restrictions.length === 0) {
+      return res.status(404).json({
+        error: `No street sweeping schedules found near point (${latitude}, ${longitude})`,
+        message: 'Might need to revisit estimated street width and gps accuracy, no street sweeping within 11m'
+      })
+    }
 
     // Return response
     res.json({
