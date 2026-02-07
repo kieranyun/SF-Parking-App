@@ -17,27 +17,37 @@ export interface CheckParkingResponse {
 
 //To be updated
 export interface ParkingRestriction {
-  type: string;
+  parkingSpot: ParkingSpot,
+  sweepSchedule: SweepingSchedule
+}
+
+export interface ParkingSpot {
   street: string;
-  // weekday?: string;
-  // fromTime?: string;
-  // toTime?: string;
-  // schedule?: string;
-  // distance: number;
   crossStreets: string; //cross streets
   blockside: string; //"East", "West", etc..
-  restrictionDescription: string;
+  cnn: number
 }
 
 // TODO: Add database row types
-export interface StreetSweepingRow {
-  id: number;
-  corridor?: string;
-  streetname?: string;
-  weekday?: string;
-  fromhour?: string;
-  tohour?: string;
-  // Add more fields as needed
+// export interface StreetSweepingRow {
+//   id: number;
+//   corridor?: string;
+//   streetname?: string;
+//   weekday?: string;
+//   fromhour?: string;
+//   tohour?: string;
+//   // Add more fields as needed
+// }
+
+export interface SweepingSchedule {
+  weekday: string;  // "Tuesday"
+  fromHour: number;
+  toHour: number;
+  week1: boolean;
+  week2: boolean;
+  week3: boolean;
+  week4: boolean;
+  week5: boolean;
 }
 
 // TODO: Add GeoJSON types if needed

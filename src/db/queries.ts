@@ -34,13 +34,19 @@ export const QUERIES = {
 ),
 offset_calc AS (
   SELECT
+    cnn,
     corridor,
     blockside,
     limits,
-    fullname,
     weekday,
+    week1,
+    week2,
+    week3,
+    week4,
+    week5,
     fromhour,
     tohour,
+    holidays,
     geom as centerline,
     ST_Azimuth(ST_StartPoint(geom), ST_EndPoint(geom)) as street_bearing,
     CASE
@@ -71,15 +77,24 @@ sidewalk_line AS (
   FROM offset_calc
 )
 SELECT
+  cnn,
   corridor,
   limits,
   blockside,
-  fullname || ' ' || fromhour || ':00-' || tohour || ':00' as schedule,
+  weekday,
+  week1,
+  week2,
+  week3,
+  week4,
+  week5,
+  fromhour,
+  tohour,
+  holidays,
   sidewalk_line,
   ST_Distance(sidewalk_line::geography, (SELECT car FROM point)::geography) as distance_meters
 FROM sidewalk_line
 ORDER BY distance_meters
 LIMIT 8;`,
 // $1 = longitude, $2 = latitude, $3 = esitmated street width / 2, $4 = accuracy radius + estimated street width / 2
-//probably want to reformat this to send the full week1 week2, weekday, holiday, etc, and handle some of that calculation on the server.
+//probably want to reformat this to send the full week1 week2, weekday, holidays, etc, and handle some of that calculation on the server.
 }
