@@ -4,6 +4,8 @@ dotenv.config();
 import express from 'express';
 import { healthRouter } from './routes/health';
 import { parkingRouter } from './routes/parking';
+import { traccarRouter } from './routes/traccar';
+import { notificationsRouter } from './routes/notifications';
 import { testConnection } from './db/connection';
 import { initializeDatabase, needsInitialization } from './db/migrations';
 import { needsDataLoad, loadStreetSweepingData } from './db/dataLoader';
@@ -17,6 +19,8 @@ app.use(express.json());
 // Routes
 app.use('/health', healthRouter);
 app.use('/api', parkingRouter);
+app.use('/api', traccarRouter);
+app.use('/api', notificationsRouter);
 
 async function startServer() {
   try {

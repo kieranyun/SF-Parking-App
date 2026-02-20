@@ -17,15 +17,16 @@ export interface CheckParkingResponse {
 
 //To be updated
 export interface ParkingRestriction {
-  parkingSpot: ParkingSpot,
-  sweepSchedule: SweepingSchedule
+  parkingSpot: ParkingSpot;
+  sweepSchedule: SweepingSchedule;
 }
 
 export interface ParkingSpot {
   street: string;
   crossStreets: string; //cross streets
   blockside: string; //"East", "West", etc..
-  cnn: number
+  cnn: number;
+  sidewalkLine: any;
 }
 
 // TODO: Add database row types

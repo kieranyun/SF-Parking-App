@@ -4,6 +4,7 @@ import { QUERIES } from './queries';
 import { GeoJSONFeature } from '../types';
 
 const SF_OPEN_DATA_URL = 'https://data.sfgov.org/resource/yhqp-riqs.geojson';
+const EST_STREET_WIDTH_METERS = 10.00;
 
 // Calls sfdata api to get street sweeping data, minor transformations and loads it to our db
 export async function loadStreetSweepingData(): Promise<number> {
@@ -42,29 +43,31 @@ export async function loadStreetSweepingData(): Promise<number> {
           continue;
         }
 
-        const wkt = coordinatesToWKT(geometry.coordinates)
+        const wkt = coordinatesToWKT(geometry.coordinates);
+        const params = [
+          props.corridor,
+          props.fullname,
+          props.weekday,
+          props.cnn,
+          props.cnnrightleft,
+          props.blocksweepid,
+          props.blockside,
+          props.limits,
+          props.fromhour ? parseInt(props.fromhour) : null,
+          props.tohour ? parseInt(props.tohour) : null,
+          props.holidays === '1',
+          props.week1 === '1',
+          props.week2 === '1',
+          props.week3 === '1',
+          props.week4 === '1',
+          props.week5 === '1',
+          wkt,
+          EST_STREET_WIDTH_METERS
+        ];
 
         await client.query(
           QUERIES.insertStreetSweeping,
-          [
-            props.corridor,
-            props.fullname,
-            props.weekday,
-            props.cnn,
-            props.cnnrightleft,
-            props.blocksweepid,
-            props.blockside,
-            props.limits,
-            props.fromhour ? parseInt(props.fromhour) : null,
-            props.tohour ? parseInt(props.tohour) : null,
-            props.holidays === '1',
-            props.week1 === '1',
-            props.week2 === '1',
-            props.week3 === '1',
-            props.week4 === '1',
-            props.week5 === '1',
-            wkt
-          ]
+          params
         );
         insertedCount++;
       } catch (error) {
@@ -104,13 +107,20 @@ export async function needsDataLoad(): Promise<boolean> {
   const client = await pool.connect();
 
   try {
-    const result = await client.query(QUERIES.checkRowCount);
-    const count = parseInt(result.rows[0].count);
-    return count === 0;
+    const result = await client.query(QUERIES.checkLastUpdatedAndRowCount, ['street_sweeping']);
+    const {last_updated, record_count: count} = (result.rows[0]);
+    const daysSinceUpdate = daysSinceDate(new Date(last_updated))
+    console.log('days since update: ', daysSinceUpdate)
+    return (parseInt(count) < 100 || daysSinceUpdate > 5);
   } catch (error) {
     console.error('Error checking data:', error);
     return true; // If error, assume we need data
   } finally {
     client.release();
   }
+}
+
+function daysSinceDate(date: Date) {
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  return Math.abs(Date.now() - date.getTime()) / MS_PER_DAY;
 }

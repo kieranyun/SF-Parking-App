@@ -4,15 +4,14 @@ import { ParkingRestriction, CheckParkingRequest, SweepingSchedule } from '../ty
 import { addWeeks, startOfMonth, nextDay, isAfter, isBefore, Day } from 'date-fns';
 
 
-const EST_STREET_WIDTH_METERS = 10.00;
-const GPS_ACCURACY_RADIUS_METERS = 6.00;
+const GPS_ACCURACY_RADIUS_METERS = 10.00;
 
 // TODO: Create a function to find parking restrictions near a coordinate
 export async function findRestrictionsNearPoint(CheckParkingRequest: CheckParkingRequest): Promise<ParkingRestriction[] | []> { //update type
   const client = await pool.connect();
   const {longitude, latitude} = CheckParkingRequest
   try {
-    const qResult = await client.query(QUERIES.getSweepingSchedulesByCoordinates,[longitude, latitude, EST_STREET_WIDTH_METERS/2, (GPS_ACCURACY_RADIUS_METERS + (EST_STREET_WIDTH_METERS/2))])
+    const qResult = await client.query(QUERIES.getSweepingSchedulesByCoordinates,[longitude, latitude, GPS_ACCURACY_RADIUS_METERS])
 
     console.log(qResult.rows);
 
@@ -22,7 +21,8 @@ export async function findRestrictionsNearPoint(CheckParkingRequest: CheckParkin
           street: row.corridor,
           crossStreets: row.limits, //cross streets
           blockside: row.blockside, //"East", "West", etc..
-          cnn: row.cnn
+          cnn: row.cnn,
+          sidewalkLine: JSON.parse(row.curbline)
         },
         sweepSchedule: {
           week1: row.week1,
@@ -45,7 +45,7 @@ export async function findRestrictionsNearPoint(CheckParkingRequest: CheckParkin
   }
 }
 
-function getNextSweeping(schedule: SweepingSchedule): Date | null {
+export function getNextSweeping(schedule: SweepingSchedule): Date | null {
   const now = new Date();
   const weekdayMap: Record<string, number> = {
     'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,

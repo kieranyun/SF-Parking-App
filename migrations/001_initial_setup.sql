@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS street_sweeping (
   fullname VARCHAR(100),        -- "Tuesday" (full day name)
   weekday VARCHAR(50),          -- "Tues" (abbreviated day)
   cnn VARCHAR(20),              -- "8753101" (Centerline Network ID)
-  cnnrightleft VARCHAR(1),      -- "L" or "R" (which side of street)
+  cnnrightleft CHAR(1),      -- "L" or "R" (which side of street)
   blocksweepid VARCHAR(20),     -- "1640782" (unique sweep block ID)
 
   -- Location details
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS street_sweeping (
   week5 BOOLEAN,
 
   -- Geometry
-  geom GEOMETRY(LineString, 4326),
+  curbline GEOMETRY(LineString, 4326),
 
   -- Metadata
   created_at TIMESTAMP DEFAULT NOW()
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS street_sweeping (
 
 -- Spatial index for fast geographic queries
 CREATE INDEX IF NOT EXISTS street_sweeping_geom_idx
-ON street_sweeping USING GIST (geom);
+ON street_sweeping USING GIST (curbline);
 
 -- Index on weekday for filtering by day
 CREATE INDEX IF NOT EXISTS street_sweeping_weekday_idx

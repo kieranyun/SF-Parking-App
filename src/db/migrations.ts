@@ -16,9 +16,11 @@ export async function runMigration(filename: string): Promise<void> {
   }
 }
 
-//just calls the sql script in '001_initial_setup.sql'
+//run all migration scripts in order
 export async function initializeDatabase(): Promise<void> {
   await runMigration('001_initial_setup.sql');
+  await runMigration('002_parked_locations.sql');
+  await runMigration('003_push_tokens.sql');
 }
 
 //Returns true if the street_sweeping table DOES NOT exist
